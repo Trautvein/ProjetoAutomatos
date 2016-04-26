@@ -1,0 +1,48 @@
+%{ 
+
+	#include <stdio.h>
+	#define YY_DECL int yylex()
+	#include "bison.tab.h" 
+ 
+%} 
+
+
+%option noyywrap
+
+ 
+%% 
+
+[ \t]        		;//--------------------CALCULADORA
+[0-9]+\.[0-9]+ 		{yylval.fval = atof(yytext); return T_FLOAT;}
+[0-9]+			{yylval.ival = atoi(yytext); return T_INT;}
+\n			{return T_NEWLINE;}
+"+"			{return T_PLUS;}
+"-"			{return T_MINUS;}
+"*"			{return T_MULTIPLY;}
+"/"			{return T_DIVIDE;}
+"("			{return T_LEFT;}
+")"			{return T_RIGHT;}
+
+
+
+ 
+
+
+
+"quit"			{return T_QUIT;}//------COMANDOS
+"ls"			{return T_LS;}
+"ps"			{return T_PS;}
+"numero"		
+"string"
+
+
+
+
+\n			{return T_NEWLINE;}//---EXCECAO
+[a-zA-Z0-9]+ 		{return T_INVALIDO;}
+
+%%
+
+
+
+

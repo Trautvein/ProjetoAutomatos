@@ -1,0 +1,13 @@
+all: shell
+
+flex.tab.c bison.tab.h:	bison.y
+	bison -d bison.y
+
+lex.yy.c: flex.lex flex.tab.h
+	flex flex.lex
+
+shell: lex.yy.c flex.tab.c bison.tab.h
+	gcc -o execlex flex.tab.c lex.yy.c -lfl
+
+clean:
+	rm execlex flex.tab.c lex.yy.c bison.tab.h

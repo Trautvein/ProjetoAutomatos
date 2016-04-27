@@ -13,14 +13,14 @@ void yyerror(const char* s);
 %}
 
 %union {
-	int ival;
-	float fval;
+	int inteiro;
+	float flutuante;
 	char string;
-	char* stringp;
+	char* texto;
 }
 
-%token<ival> T_INT
-%token<fval> T_FLOAT
+%token<inteiro> T_INT
+%token<flutuante> T_FLOAT
 %token T_PLUS T_MINUS T_MULTIPLY T_DIVIDE T_LEFT T_RIGHT
 
 %left T_PLUS T_MINUS
@@ -45,22 +45,31 @@ void yyerror(const char* s);
 
 
 
-%type<ival> expression
-%type<fval> mixed_expression
+%type<inteiro> expression
+%type<flutuante> mixed_expression
 %type<string> comando
-%type<stringp> C_ID
+%type<texto> C_ID
 %start rotshell
 
 %%
 
 rotshell: 
-	   | rotshell line
+	   | rotshell line										
 ;
 
-line: T_NEWLINE
+line: T_NEWLINE												{	char diretorio[2023];
+																getcwd(diretorio, sizeof(diretorio));
+																strcat(diretorio,"$ ");
+																printf("Rotshell:~%s",diretorio);
+															}
 		  | mixed_expression T_NEWLINE 						{ printf("\tResultado = %f\n", $1);}
 		  | expression T_NEWLINE 							{ printf("\tResultado = %i\n", $1); } 
-		  | comando T_NEWLINE								
+		  | comando T_NEWLINE								{	char diretorio[2023];
+																getcwd(diretorio, sizeof(diretorio));
+																strcat(diretorio,"$ ");
+																printf("Rotshell:~%s",diretorio);
+															}
+		  						
 ;
 	
 mixed_expression: T_FLOAT									{ $$ = $1; }
@@ -81,34 +90,52 @@ mixed_expression: T_FLOAT									{ $$ = $1; }
 		  
 ;
 
-expression: T_INT											{ $$ = $1; }
-		  | expression T_PLUS expression					{ $$ = $1 + $3; }
-		  | expression T_MINUS expression					{ $$ = $1 - $3; }
-		  | expression T_MULTIPLY expression				{ $$ = $1 * $3; }
-		  | T_LEFT expression T_RIGHT						{ $$ = $2; }
+expression: T_INT								{ $$ = $1; }
+		  | expression T_PLUS expression		{ $$ = $1 + $3; }
+		  | expression T_MINUS expression		{ $$ = $1 - $3; }
+		  | expression T_MULTIPLY expression	{ $$ = $1 * $3; }
+		  | T_LEFT expression T_RIGHT			{ $$ = $2; }
 ;
 
-comando:  C_LS 												{ $$ = system("/bin/ls"); }
-		| C_PS 												{ $$ = system("/bin/ps"); }
-		| C_KILL expression									{   char comando[1024]; 
-																char buffer[1024];
-																snprintf (comando, sizeof(comando), "/bin/kill %d\n", $2);
-																snprintf (buffer, sizeof(buffer), "processo %d finalizado\n", $2);
-																printf("%s", buffer);
-																$$ = system(comando);
-															}
-		| C_MKDIR C_ID										{   char comando[1024] = "/bin/mkdir "; 
-																printf("%s %s", comando,$2);
-																
-															}
-		| C_RMDIR C_ID										{ 	char comando[1024] = "/bin/rmdir "; 	
-																$$ = system(strcat(comando,$2)); 
-															}
-		| C_CD C_ID											{ printf("Teste C_CD ID\n"); }
-		| C_TOUCH C_ID										{ printf("Teste C_TOUCH ID\n"); }
-		| C_IFCONFIG										{ $$ = system("ifconfig"); }
-		| C_STAR C_ID 										{ printf("Teste C_STAR ID\n"); }
-		| C_QUIT T_NEWLINE 									{ printf("Fim do RotShell!\n"); exit(0); }
+
+
+comando:  C_LS 									{ $$ = system("/bin/ls"); }
+		| C_PS									{ $$ = system("/bin/ps"); }
+		| C_KILL expression						{ char comando[1024]; 
+												  char texto[1024];
+												  snprintf (comando, sizeof(comando), "/bin/kill %d\n", $2);
+												  snprintf (texto, sizeof(texto), "processo %d finalizado\n", $2);
+												  printf("%s", texto);
+												  $$ = system(comando);
+												}
+		| C_MKDIR C_ID 							{ char comando[1024] = "/bin/mkdir "; 
+												  $$ = system(strcat(comando,$2)); 
+												}
+		| C_RMDIR C_ID 							{ char comando[1024] = "/bin/rmdir "; 	
+												  $$ = system(strcat(comando,$2)); 
+												}
+		| C_CD C_ID 							{ char comando[2048];
+												  int erro;
+												  int aux = strcmp("..",$2);
+												  if(aux == 0){
+												  	erro = chdir($2);
+												  }else{
+												  	getcwd(comando, sizeof(comando));
+	   											  	strcat(comando,"/");
+	   											  	strcat(comando,$2);
+	   											  	erro = chdir(comando);
+	   											  }
+	   											  if(erro != 0){
+													printf("Diretorio %s nao encontrado\n",$2);
+													system("/bin/ls");
+	   											  }
+	   											}
+		| C_TOUCH C_ID 							{ char comando[1024] = "/bin/touch "; 	
+												  $$ = system(strcat(comando,$2)); 
+												}
+		| C_IFCONFIG 							{ $$ = system("ifconfig"); }
+		| C_STAR C_ID 							{ printf("Teste C_STAR ID\n"); }
+		| C_QUIT T_NEWLINE 						{ printf("Fim do RotShell!\n"); exit(0); }
 ;
 
 %%

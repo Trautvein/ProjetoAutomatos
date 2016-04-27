@@ -13,8 +13,8 @@
 %% 
 
 
-[0-9]+\.[0-9]+ 		{yylval.fval = atof(yytext); return T_FLOAT;}
-[0-9]+			{yylval.ival = atoi(yytext); return T_INT;}
+[0-9]+\.[0-9]+ 		{yylval.flutuante = atof(yytext); return T_FLOAT;}
+[0-9]+			{yylval.inteiro = atoi(yytext); return T_INT;}
 "+"			{return T_PLUS;}
 "-"			{return T_MINUS;}
 "*"			{return T_MULTIPLY;}
@@ -43,9 +43,10 @@
 
 
 
-[ \t]        	;//---------------------Iguinora	
-\n				{return T_NEWLINE;}//---Quebra linha
-[a-zA-Z0-9]+	{return C_ID;}//--------Entrada tipo String
+[ \t]        								;//---------------------Iguinora	
+\n											{return T_NEWLINE;}//---Quebra linha
+[a-zA-Z0-9\.]*								{yylval.texto = (yytext); return C_ID;}//--------Entrada tipo String
+
 
 %%
 

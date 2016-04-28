@@ -30,6 +30,7 @@
 
 "ls"			{return C_LS;}//--------Lista o conteúdo do diretório atual
 "ps"			{return C_PS;}//--------Lista todos os processos do usuário
+"pwd"			{return C_PWD;}//-------Mostra o diretorio atual
 "kill"			{return C_KILL;}//------Fecha processo
 "mkdir"			{return C_MKDIR;}//-----Cria um diretorio
 "rmdir" 		{return C_RMDIR;}//-----Remove o diretório 
@@ -45,7 +46,7 @@
 
 [ \t]        								;//---------------------Iguinora	
 \n											{return T_NEWLINE;}//---Quebra linha
-[a-zA-Z0-9\.]*								{yylval.texto = (yytext); return C_ID;}//--------Entrada tipo String
+[~a-zA-Z0-9\.-]*							{yylval.texto = (yytext); return C_ID;}//--------Entrada tipo String
 
 
 %%

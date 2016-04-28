@@ -9,6 +9,14 @@ extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
+
+void inicio(){
+	char diretorio[2023];
+	getcwd(diretorio, sizeof(diretorio));
+	strcat(diretorio,"$ ");
+	printf("Rotshell:~%s",diretorio);
+}
+
 void yyerror(const char* s);
 %}
 
@@ -30,6 +38,7 @@ void yyerror(const char* s);
 
 %token C_LS 
 %token C_PS 
+%token C_PWD
 %token C_KILL
 %token C_MKDIR 										
 %token C_RMDIR 								
@@ -57,18 +66,10 @@ rotshell:
 	   | rotshell line										
 ;
 
-line: T_NEWLINE												{	char diretorio[2023];
-																getcwd(diretorio, sizeof(diretorio));
-																strcat(diretorio,"$ ");
-																printf("Rotshell:~%s",diretorio);
-															}
-		  | mixed_expression T_NEWLINE 						{ printf("\tResultado = %f\n", $1);}
-		  | expression T_NEWLINE 							{ printf("\tResultado = %i\n", $1); } 
-		  | comando T_NEWLINE								{	char diretorio[2023];
-																getcwd(diretorio, sizeof(diretorio));
-																strcat(diretorio,"$ ");
-																printf("Rotshell:~%s",diretorio);
-															}
+line: T_NEWLINE												{ inicio();}
+		  | mixed_expression T_NEWLINE 						{ printf("\tResultado = %f\n", $1); inicio();}
+		  | expression T_NEWLINE 							{ printf("\tResultado = %i\n", $1); inicio();} 
+		  | comando T_NEWLINE								{ inicio();}
 		  						
 ;
 	
@@ -99,8 +100,13 @@ expression: T_INT								{ $$ = $1; }
 
 
 
+
 comando:  C_LS 									{ $$ = system("/bin/ls"); }
+		| C_LS C_ID 							{ char comando[1024] = "/bin/ls "; 	
+												  $$ = system(strcat(comando,$2)); 
+												}
 		| C_PS									{ $$ = system("/bin/ps"); }
+		| C_PWD									{ $$ = system("/bin/pwd"); }
 		| C_KILL expression						{ char comando[1024]; 
 												  char texto[1024];
 												  snprintf (comando, sizeof(comando), "/bin/kill %d\n", $2);
@@ -114,11 +120,20 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 		| C_RMDIR C_ID 							{ char comando[1024] = "/bin/rmdir "; 	
 												  $$ = system(strcat(comando,$2)); 
 												}
+		| C_CD									{ int erro = chdir("/home");
+												  if(erro != 0){
+													printf("Diretorio nao encontrado\n");
+													system("/bin/ls");
+	   											  }
+												}	
 		| C_CD C_ID 							{ char comando[2048];
 												  int erro;
 												  int aux = strcmp("..",$2);
+												  int auxx = strcmp("~",$2);
 												  if(aux == 0){
 												  	erro = chdir($2);
+												  }else if(auxx == 0){
+												  	erro = chdir("/home");
 												  }else{
 												  	getcwd(comando, sizeof(comando));
 	   											  	strcat(comando,"/");
@@ -142,7 +157,7 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 
 int main() {
 	yyin = stdin;
-
+	inicio();
 	do { 
 		yyparse();
 	} while(!feof(yyin));
@@ -152,5 +167,5 @@ int main() {
 
 void yyerror(const char* s) {
 	fprintf(stderr, "comando invalido: %s\n", s);
-	exit(1);
+	
 }

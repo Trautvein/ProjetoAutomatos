@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <sys/types.h>
+#include <unistd.h>
 
 extern int yylex();
 extern int yyparse();
@@ -45,9 +46,10 @@ void yyerror(const char* s);
 %token C_CD 											
 %token C_TOUCH 									
 %token C_IFCONFIG										
-%token C_STAR 							
+%token C_START 							
 %token C_QUIT
 %token C_ID
+%token C_HELP
 %token T_NEWLINE 
 
 
@@ -149,7 +151,25 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 												  $$ = system(strcat(comando,$2)); 
 												}
 		| C_IFCONFIG 							{ $$ = system("ifconfig"); }
-		| C_STAR C_ID 							{ printf("Teste C_STAR ID\n"); }
+		| C_START C_ID 							{ strcat($2,"&");
+												  $$ = system($2);  
+												}
+		| C_HELP								{	printf("\n( ls ) ------------------Lista o conteúdo do diretório atual\n");
+													printf("( ls -l ) ---------------Mostra propriedades\n");
+													printf("( ps ) ------------------Lista todos os processos do usuário\n");
+													printf("( pwd ) -----------------Mostra o diretorio atual \n");
+													printf("( kill ) ----------------Fecha processo\n");
+													printf("( mkdir ) ---------------Cria um diretorio\n");
+													printf("( rmdir ) ---------------Remove o diretório \n");
+													printf("( cd /Diretorio ) -------Torna o diretório id como atual\n");
+													printf("( cd ~ ou cd ) ----------Vai para a pasta do usuário\n");
+													printf("( cd .. ) ---------------Diretório acima\n");
+													printf("( touch ) ---------------Cria um arquivo com o nome id\n");
+													printf("( ifconfig ) ------------Exibe as informações de todas as interfaces de rede do sistema\n");
+													printf("( start ) ---------------Invoca a execução do programa id\n");
+													printf("( help ) ----------------Mostra informacoes sobre os comandos\n");
+													printf("( quit ) ----------------Encerra o shell\n\n");
+												}
 		| C_QUIT T_NEWLINE 						{ printf("Fim do RotShell!\n"); exit(0); }
 ;
 

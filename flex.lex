@@ -37,7 +37,8 @@
 "cd"			{return C_CD;}//--------Torna o diretório id como atual
 "touch"			{return C_TOUCH;}//-----Cria um arquivo com o nome id
 "ifconfig"		{return C_IFCONFIG;}//--Exibe as informações de todas as interfaces de rede do sistema
-"star"			{return C_STAR;}//------Invoca a execução do programa id
+"start"			{return C_START;}//-----Invoca a execução do programa id
+"help"			{return C_HELP;}//------Mostra informacoes sobre os comandos
 "quit"			{return C_QUIT;}//------Encerra o shell
 
 

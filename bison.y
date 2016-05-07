@@ -12,10 +12,10 @@ extern FILE* yyin;
 
 
 void inicio(){
-	char diretorio[2023];
-	getcwd(diretorio, sizeof(diretorio));
-	strcat(diretorio,"$ ");
-	printf("Rotshell:~%s",diretorio);
+		char diretorio[2023];
+		getcwd(diretorio, sizeof(diretorio));
+		strcat(diretorio,"$ ");
+		printf("Rotshell:~%s",diretorio);
 }
 
 void yyerror(const char* s);
@@ -50,6 +50,7 @@ void yyerror(const char* s);
 %token C_QUIT
 %token C_ID
 %token C_HELP
+%token C_CLEAR
 %token T_NEWLINE 
 
 
@@ -64,7 +65,9 @@ void yyerror(const char* s);
 
 %%
 
-rotshell: 
+rotshell: 													{ 
+		  														
+		  													}
 	   | rotshell line										
 ;
 
@@ -75,40 +78,44 @@ line: T_NEWLINE												{ inicio();}
 		  						
 ;
 	
-mixed_expression: T_FLOAT									{ $$ = $1; }
-		  | mixed_expression T_PLUS mixed_expression	 	{ $$ = $1 + $3; }
-		  | mixed_expression T_MINUS mixed_expression	 	{ $$ = $1 - $3; }
-		  | mixed_expression T_MULTIPLY mixed_expression 	{ $$ = $1 * $3; }
-		  | mixed_expression T_DIVIDE mixed_expression	 	{ $$ = $1 / $3; }
-		  | T_LEFT mixed_expression T_RIGHT		 			{ $$ = $2; }
-		  | expression T_PLUS mixed_expression	 	 		{ $$ = $1 + $3; }
-		  | expression T_MINUS mixed_expression	 	 		{ $$ = $1 - $3; }
-		  | expression T_MULTIPLY mixed_expression 	 		{ $$ = $1 * $3; }
-		  | expression T_DIVIDE mixed_expression	 		{ $$ = $1 / $3; }
-		  | mixed_expression T_PLUS expression	 	 		{ $$ = $1 + $3; }
-		  | mixed_expression T_MINUS expression	 	 		{ $$ = $1 - $3; }
-		  | mixed_expression T_MULTIPLY expression 	 		{ $$ = $1 * $3; }
-		  | mixed_expression T_DIVIDE expression	 		{ $$ = $1 / $3; }
-		  | expression T_DIVIDE expression		 			{ $$ = $1 / (float)$3; }
+mixed_expression: T_FLOAT											{ $$ = $1; }
+		  | mixed_expression T_PLUS mixed_expression	 			{ $$ = $1 + $3; }
+		  | mixed_expression T_MINUS mixed_expression	 			{ $$ = $1 - $3; }
+		  | mixed_expression T_MULTIPLY mixed_expression 			{ $$ = $1 * $3; }
+		  | mixed_expression T_DIVIDE mixed_expression	 			{ $$ = $1 / $3; }
+		  | T_LEFT mixed_expression T_RIGHT		 					{ $$ = $2; }
+		  | expression T_PLUS mixed_expression	 	 				{ $$ = $1 + $3; }
+		  | expression T_MINUS mixed_expression	 	 				{ $$ = $1 - $3; }
+		  | expression T_MULTIPLY mixed_expression 	 				{ $$ = $1 * $3; }
+		  | expression T_DIVIDE mixed_expression	 				{ $$ = $1 / $3; }
+		  | mixed_expression T_PLUS expression	 	 				{ $$ = $1 + $3; }
+		  | mixed_expression T_MINUS expression	 	 				{ $$ = $1 - $3; }
+		  | mixed_expression T_MULTIPLY expression 	 				{ $$ = $1 * $3; }
+		  | mixed_expression T_DIVIDE expression	 				{ $$ = $1 / $3; }
+		  | expression T_DIVIDE expression		 					{ $$ = $1 / (float)$3; }
 		  
 ;
 
-expression: T_INT								{ $$ = $1; }
-		  | expression T_PLUS expression		{ $$ = $1 + $3; }
-		  | expression T_MINUS expression		{ $$ = $1 - $3; }
-		  | expression T_MULTIPLY expression	{ $$ = $1 * $3; }
-		  | T_LEFT expression T_RIGHT			{ $$ = $2; }
+expression: T_INT												{ $$ = $1; }
+		  | expression T_PLUS expression						{ $$ = $1 + $3; }
+		  | expression T_MINUS expression						{ $$ = $1 - $3; }
+		  | expression T_MULTIPLY expression					{ $$ = $1 * $3; }
+		  | T_LEFT expression T_RIGHT							{ $$ = $2; }
 ;
 
 
 
 
 comando:  C_LS 									{ $$ = system("/bin/ls"); }
-		| C_LS C_ID 							{ char comando[1024] = "/bin/ls "; 	
-												  $$ = system(strcat(comando,$2)); 
-												}
+		| C_LS 	C_ID							{ printf("ls: não é possível acessar %s: Arquivo ou diretório não encontrado\n",$2); }
+		
+		| C_LS T_MINUS C_ID						{ char comando[1024] = "/bin/ls -"; 	
+												  $$ = system(strcat(comando,$3)); 
+												}					
 		| C_PS									{ $$ = system("/bin/ps"); }
+		| C_PS	C_ID							{ $$ = system("/bin/ps"); }
 		| C_PWD									{ $$ = system("/bin/pwd"); }
+		| C_PWD	C_ID							{ $$ = system("/bin/pwd"); }
 		| C_KILL expression						{ char comando[1024]; 
 												  char texto[1024];
 												  snprintf (comando, sizeof(comando), "/bin/kill %d\n", $2);
@@ -119,9 +126,11 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 		| C_MKDIR C_ID 							{ char comando[1024] = "/bin/mkdir "; 
 												  $$ = system(strcat(comando,$2)); 
 												}
+		| C_MKDIR 	 							{ printf("mkdir: falta operando\nTry 'help' for more information.\n"); }										
 		| C_RMDIR C_ID 							{ char comando[1024] = "/bin/rmdir "; 	
 												  $$ = system(strcat(comando,$2)); 
 												}
+		| C_RMDIR								{ printf("rmdir: falta operando\nTry 'help' for more information.\n"); }
 		| C_CD									{ int erro = chdir("/home");
 												  if(erro != 0){
 													printf("Diretorio nao encontrado\n");
@@ -164,20 +173,32 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 													printf("( cd /Diretorio ) -------Torna o diretório id como atual\n");
 													printf("( cd ~ ou cd ) ----------Vai para a pasta do usuário\n");
 													printf("( cd .. ) ---------------Diretório acima\n");
-													printf("( touch ) ---------------Cria um arquivo com o nome id\n");
+													printf("( touch ) ---------------Cria um arquivo com o nome id ou atualiza um arquivoid\n");
 													printf("( ifconfig ) ------------Exibe as informações de todas as interfaces de rede do sistema\n");
 													printf("( start ) ---------------Invoca a execução do programa id\n");
 													printf("( help ) ----------------Mostra informacoes sobre os comandos\n");
+													printf("( clear )----------------Limpa a tela\n");
 													printf("( quit ) ----------------Encerra o shell\n\n");
 												}
-		| C_QUIT T_NEWLINE 						{ printf("Fim do RotShell!\n"); exit(0); }
+		| C_CLEAR 								{ system("clear");}										
+		| C_QUIT T_NEWLINE 						{ printf("Fim do RotShell!\n\n"); exit(0); }
 ;
 
 %%
 
 int main() {
 	yyin = stdin;
-	inicio();
+	
+		
+	
+		inicio();
+  													
+		
+	
+		
+	
+	
+																
 	do { 
 		yyparse();
 	} while(!feof(yyin));
@@ -186,6 +207,7 @@ int main() {
 }
 
 void yyerror(const char* s) {
-	fprintf(stderr, "comando invalido: %s\n", s);
+	fprintf(stderr, "Comando invalido: %s\n", s);
 	
+		
 }

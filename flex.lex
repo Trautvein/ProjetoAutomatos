@@ -39,6 +39,7 @@
 "ifconfig"		{return C_IFCONFIG;}//--Exibe as informações de todas as interfaces de rede do sistema
 "start"			{return C_START;}//-----Invoca a execução do programa id
 "help"			{return C_HELP;}//------Mostra informacoes sobre os comandos
+"clear"			{return C_CLEAR;}//-----Limpa a tela
 "quit"			{return C_QUIT;}//------Encerra o shell
 
 
@@ -47,7 +48,7 @@
 
 [ \t]        								;//---------------------Iguinora	
 \n											{return T_NEWLINE;}//---Quebra linha
-[~a-zA-Z0-9\.-]*							{yylval.texto = (yytext); return C_ID;}//--------Entrada tipo String
+[~a-zA-Z0-9\.()_/]*							{yylval.texto = (yytext); return C_ID;}//--------Entrada tipo String
 
 
 %%

@@ -13,7 +13,7 @@
 %% 
 
 
-[0-9]+\.[0-9]+ 		{yylval.flutuante = atof(yytext); return T_FLOAT;}
+[0-9]+\.[0-9]+ 	{yylval.flutuante = atof(yytext); return T_FLOAT;}
 [0-9]+			{yylval.inteiro = atoi(yytext); return T_INT;}
 "+"			{return T_PLUS;}
 "-"			{return T_MINUS;}

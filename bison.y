@@ -65,9 +65,7 @@ void yyerror(const char* s);
 
 %%
 
-rotshell: 													{ 
-		  														
-		  													}
+rotshell: 													
 	   | rotshell line										
 ;
 
@@ -116,6 +114,7 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 		| C_PS	C_ID							{ $$ = system("/bin/ps"); }
 		| C_PWD									{ $$ = system("/bin/pwd"); }
 		| C_PWD	C_ID							{ $$ = system("/bin/pwd"); }
+		| C_KILL 				    			{ printf("kill: uso:[kill 1679] onde 1679 e o numero de um processo\n");}
 		| C_KILL expression						{ char comando[1024]; 
 												  char texto[1024];
 												  snprintf (comando, sizeof(comando), "/bin/kill %d\n", $2);
@@ -156,10 +155,15 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 													system("/bin/ls");
 	   											  }
 	   											}
+
+
+	   	| C_TOUCH								{printf("touch: falta o operando arquivo\nTry touch --help for more information.\n");}
 		| C_TOUCH C_ID 							{ char comando[1024] = "/bin/touch "; 	
 												  $$ = system(strcat(comando,$2)); 
 												}
+		| C_IFCONFIG C_ID  						{printf("%s : erro obtendo informações da interface : dispositivo não encontrado\n",$2);}
 		| C_IFCONFIG 							{ $$ = system("ifconfig"); }
+		| C_START								{ printf("start: falta operando\nTry 'help' for more information.\n"); }
 		| C_START C_ID 							{ strcat($2,"&");
 												  $$ = system($2);  
 												}
@@ -188,17 +192,10 @@ comando:  C_LS 									{ $$ = system("/bin/ls"); }
 
 int main() {
 	yyin = stdin;
+
 	
-		
-	
-		inicio();
-  													
-		
-	
-		
-	
-	
-																
+	inicio();
+  																											
 	do { 
 		yyparse();
 	} while(!feof(yyin));

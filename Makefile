@@ -8,6 +8,7 @@ lex.yy.c: flex.lex bison.tab.h
 
 shell: lex.yy.c bison.tab.c bison.tab.h
 	gcc -o rotshell bison.tab.c lex.yy.c -lfl
+	./rotshell
 
 clean:
 	rm rotshell bison.tab.c lex.yy.c bison.tab.h
